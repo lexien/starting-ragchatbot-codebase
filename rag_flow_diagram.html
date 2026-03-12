@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RAG Query Flow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.4rem; color: #94a3b8; margin-bottom: 36px; letter-spacing: 0.05em; }
+
+    .flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .node {
+      width: 100%;
+      border-radius: 10px;
+      padding: 14px 20px;
+      text-align: center;
+      position: relative;
+    }
+    .node .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      opacity: 0.6;
+    }
+    .node .title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .node .file {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      opacity: 0.55;
+      font-family: monospace;
+    }
+
+    .browser  { background: #1e3a5f; border: 1.5px solid #3b82f6; }
+    .fastapi  { background: #1a3a2a; border: 1.5px solid #22c55e; }
+    .rag      { background: #2d1f4e; border: 1.5px solid #a855f7; }
+    .claude1  { background: #3b2a1a; border: 1.5px solid #f97316; }
+    .tool     { background: #1e3040; border: 1.5px solid #38bdf8; }
+    .chroma   { background: #1e3040; border: 1.5px solid #38bdf8; }
+    .claude2  { background: #3b2a1a; border: 1.5px solid #f97316; }
+    .session  { background: #2a2a1a; border: 1.5px solid #eab308; }
+    .response { background: #1e3a5f; border: 1.5px solid #3b82f6; }
+
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin: 0;
+    }
+    .arrow .line {
+      width: 2px;
+      height: 28px;
+      background: #475569;
+    }
+    .arrow .tip {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #475569;
+    }
+    .arrow .msg {
+      position: absolute;
+      left: calc(50% + 10px);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.68rem;
+      color: #94a3b8;
+      white-space: nowrap;
+      font-family: monospace;
+      background: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .branch {
+      display: flex;
+      width: 100%;
+      gap: 16px;
+      position: relative;
+    }
+    .branch-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .branch-label {
+      font-size: 0.68rem;
+      color: #64748b;
+      text-align: center;
+      padding: 4px 10px;
+      border: 1px dashed #334155;
+      border-radius: 20px;
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+
+    .divider {
+      width: 100%;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #64748b;
+      margin: 4px 0;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 38%;
+      height: 1px;
+      background: #334155;
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    .note {
+      font-size: 0.7rem;
+      color: #64748b;
+      text-align: center;
+      margin-top: 32px;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+    .note span { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <h1>RAG Chatbot — Query Flow</h1>
+
+  <div class="flow">
+
+    <!-- Browser -->
+    <div class="node browser">
+      <div class="label">Frontend</div>
+      <div class="title">Browser</div>
+      <div class="file">script.js — sendMessage()</div>
+    </div>
+
+    <div class="arrow">
+      <div class="line"></div>
+      <div class="tip"></div>
+      <div class="msg">POST /api/query {query, session_id}</div>
+    </div>
+
+    <!-- FastAPI -->
+    <div class="node fastapi">
+      <div class="label">Backend</div>
+      <div class="title">FastAPI Endpoint</div>
+      <div class="file">app.py — /api/query</div>
+    </div>
+
+    <div class="arrow">
+      <div class="line"></div>
+      <div class="tip"></div>
+      <div class="msg">rag_system.query(query, session_id)</div>
+    </div>
+
+    <!-- RAG System -->
+    <div class="node rag">
+      <div class="label">Orchestrator</div>
+      <div class="title">RAG System</div>
+      <div class="file">rag_system.py — fetches session history</div>
+    </div>
+
+    <div class="arrow">
+      <div class="line"></div>
+      <div class="tip"></div>
+      <div class="msg">query + history + tools</div>
+    </div>
+
+    <!-- Claude #1 -->
+    <div class="node claude1">
+      <div class="label">Anthropic API — Call #1</div>
+      <div class="title">Claude decides: search or not?</div>
+      <div class="file">ai_generator.py — generate_response()</div>
+    </div>
+
+    <div class="arrow">
+      <div class="line" style="height:14px"></div>
+      <div class="tip"></div>
+    </div>
+
+    <!-- Branch -->
+    <div class="branch">
+      <div class="branch-col">
+        <div class="branch-label">No search needed</div>
+        <div class="node claude2" style="width:100%">
+          <div class="title">Direct answer</div>
+          <div class="file">general knowledge question</div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="branch-label">Search needed → tool_use</div>
+        <div class="node tool" style="width:100%">
+          <div class="title">Tool: search_course_content</div>
+          <div class="file">search_tools.py — execute_tool()</div>
+        </div>
+        <div class="arrow"><div class="line" style="height:20px"></div><div class="tip"></div></div>
+        <div class="node chroma" style="width:100%">
+          <div class="title">ChromaDB Semantic Search</div>
+          <div class="file">vector_store.py — returns top chunks</div>
+        </div>
+        <div class="arrow"><div class="line" style="height:20px"></div><div class="tip"></div></div>
+        <div class="node claude2" style="width:100%">
+          <div class="title">Claude — Call #2</div>
+          <div class="file">generates answer from chunks</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow" style="margin-top:4px">
+      <div class="line"></div>
+      <div class="tip"></div>
+      <div class="msg">answer + sources</div>
+    </div>
+
+    <!-- Session update -->
+    <div class="node session">
+      <div class="label">Side effect</div>
+      <div class="title">Session History Updated</div>
+      <div class="file">session_manager.py — add_exchange()</div>
+    </div>
+
+    <div class="arrow">
+      <div class="line"></div>
+      <div class="tip"></div>
+      <div class="msg">{answer, sources, session_id}</div>
+    </div>
+
+    <!-- Response -->
+    <div class="node response">
+      <div class="label">Frontend</div>
+      <div class="title">Browser renders response</div>
+      <div class="file">script.js — addMessage() · marked.js for markdown · collapsible sources</div>
+    </div>
+
+  </div>
+
+  <p class="note">
+    <span>Tool use is optional</span> — Claude only calls <code>search_course_content</code> for course-specific questions.
+    General knowledge questions skip ChromaDB entirely and return in a single API call.
+  </p>
+</body>
+</html>
