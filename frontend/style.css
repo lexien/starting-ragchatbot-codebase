@@ -586,7 +586,7 @@ a.source-pill:hover {
 }
 
 .new-chat-btn::before {
-    content: '▶';
+    content: '+';
     display: inline-block;
     margin-right: 0.5rem;
     font-size: 0.75rem;
