@@ -1,6 +1,23 @@
 // API base URL - use relative path to work from any host
 const API_URL = '/api';
 
+// Theme Management
+function initTheme() {
+    const saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    const btn = document.getElementById('themeToggle');
+    btn.setAttribute('aria-label', next === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+}
+
+initTheme();
+
 // Global state
 let currentSessionId = null;
 
@@ -20,6 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     createNewSession();
     loadCourseStats();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const initialTheme = document.documentElement.getAttribute('data-theme');
+    themeToggle.setAttribute('aria-label', initialTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+    themeToggle.addEventListener('click', toggleTheme);
 });
 
 // Event Listeners
